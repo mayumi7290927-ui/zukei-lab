@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>図形ラボ・立体のくり抜き</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:#172334;background:#f4f6f8}
+*{box-sizing:border-box}body{margin:0;padding:16px;max-width:850px;margin:auto}
+header{background:#18324d;color:white;padding:18px;border-radius:16px;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 5px}header p{margin:0;color:#d5e1ed;font-size:13px}
+.card{background:white;border:1px solid #dce3ea;border-radius:14px;padding:14px;margin:12px 0}
+h2{font-size:16px;margin:0 0 10px}
+canvas{width:100%;height:340px;display:block;background:#f8fafc;border-radius:10px;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button,select{border:1px solid #bdc9d5;border-radius:9px;padding:10px 12px;background:white;color:#172334;font-size:14px}
+button.primary{background:#245b8f;color:white;border-color:#245b8f}
+button:active{opacity:.75}
+label{font-size:14px;display:inline-flex;align-items:center;gap:6px;margin:5px 12px 5px 0}
+.small{font-size:12px;color:#5b6875;line-height:1.6}
+.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{background:#edf3f8;border-radius:10px;padding:10px 12px;min-width:110px}.stat b{display:block;font-size:21px}
+#layers{display:flex;gap:7px;flex-wrap:wrap}
+.note{background:#fff8e8;border:1px solid #f0dfb7;border-radius:10px;padding:10px;font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<header><h1>図形ラボ</h1><p>立体のくり抜き・回転・分解を試す試作品</p></header>
+<section class="card">
+<h2>立体を操作する</h2>
+<canvas id="view" width="760" height="560" aria-label="回転できる立方体"></canvas>
+<div class="controls">
+<button id="reset" class="primary">向きを戻す</button>
+<button id="explode">層を分解／戻す</button>
+<button id="showAll">すべて表示</button>
+</div>
+<p class="small">立体を指またはマウスでドラッグすると回転します。拡大縮小は下の倍率で調整できます。</p>
+<label>大きさ <input id="zoom" type="range" min="65" max="145" value="100"></label>
+</section>
+<section class="card">
+<h2>くり抜く位置を選ぶ</h2>
+<p class="small">各方向から、指定した列・行をまっすぐ貫通させます。複数方向を選ぶと、重なった小立方体は一度だけ取り除きます。</p>
+<div>
+<label>正面：列 <select id="front"></select></label>
+<label><input type="checkbox" id="useFront">くり抜く</label>
+</div>
+<div>
+<label>右側面：列 <select id="side"></select></label>
+<label><input type="checkbox" id="useSide">くり抜く</label>
+</div>
+<div>
+<label>上面：位置 <select id="top"></select></label>
+<label><input type="checkbox" id="useTop">くり抜く</label>
+</div>
+<div class="controls"><button id="clear" class="primary">くり抜きを解除</button></div>
+<div class="stats">
+<div class="stat"><span class="small">元の個数</span><b>64</b></div>
+<div class="stat"><span class="small">残った個数</span><b id="remaining">64</b></div>
+<div class="stat"><span class="small">取り除いた個数</span><b id="removed">0</b></div>
+</div>
+</section>
+<section class="card">
+<h2>層ごとに見る</h2>
+<p class="small">高さごとに表示・非表示を切り替えます。</p>
+<div id="layers"></div>
+</section>
+<section class="card">
+<h2>つながりを調べる</h2>
+<button id="components" class="primary">面でつながる立体を色分け</button>
+<button id="normal">通常表示</button>
+<p id="componentText" class="small">色分けすると、面で接している小立方体のまとまりを区別します。辺や頂点だけの接触はつながりに含めません。</p>
+</section>
+<div class="note">これは操作感を確認するための試作品です。問題集の図を自動認識したり、元の入試問題の正解を判定したりする機能はまだありません。くり抜き位置はこの画面で指定する仮の設定です。</div>
+<script>
+const N=4, canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+let yaw=-0.65,pitch=0.48,zoom=1,exploded=false,componentMode=false;
+let visible=[true,true,true,true];
+const $=id=>document.getElementById(id);
+['front','side','top'].forEach(id=>{for(let i=1;i<=4;i++){let o=document.createElement('option');o.value=i-1;o.textContent=i;$ (id).appendChild(o)}});
+const layers=$('layers');
+for(let i=3;i>=0;i--){let b=document.createElement('button');b.textContent=(i+1)+'段目';b.dataset.layer=i;b.onclick=()=>{visible[i]=!visible[i];b.classList.toggle('primary',visible[i]);draw()};b.className='primary';layers.appendChild(b)}
+function removedSet(){
+ let s=new Set();
+ if($('useFront').checked){let x=+$('front').value;for(let y=0;y<4;y++)for(let z=0;z<4;z++)s.add(`${x},${y},${z}`)}
+ if($('useSide').checked){let z=+$('side').value;for(let x=0;x<4;x++)for(let y=0;y<4;y++)s.add(`${x},${y},${z}`)}
+ if($('useTop').checked){let v=+$('top').value;let x=v%4,z=Math.floor(v/4);for(let y=0;y<4;y++)s.add(`${x},${y},${z}`)}
+ return s;
+}
+function components(cubes){
+ let set=new Set(cubes.map(c=>c.join(','))), groups=[],seen=new Set();
+ for(let c of cubes){let k=c.join(',');if(seen.has(k))continue;let q=[c],g=[];seen.add(k);
+ while(q.length){let a=q.pop();g.push(a);for(let d of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){let n=[a[0]+d[0],a[1]+d[1],a[2]+d[2]],nk=n.join(',');if(set.has(nk)&&!seen.has(nk)){seen.add(nk);q.push(n)}}}groups.push(g)}
+ return groups;
+}
+function rotate(p){let [x,y,z]=p;let a=x*Math.cos(yaw)-z*Math.sin(yaw),b=x*Math.sin(yaw)+z*Math.cos(yaw);let c=y*Math.cos(pitch)-b*Math.sin(pitch),d=y*Math.sin(pitch)+b*Math.cos(pitch);return [a,c,d]}
+function project(p,layer=0){let q=[p[0],p[1]+(exploded?(layer-1.5)*.62:0),p[2]];let r=rotate(q),scale=62*zoom;return [380+r[0]*scale,285-r[1]*scale-r[2]*scale*.45,r[2]]}
+function draw(){
+ ctx.clearRect(0,0,760,560);ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,760,560);
+ let rem=removedSet(),cubes=[];
+ for(let x=0;x<4;x++)for(let y=0;y<4;y++)for(let z=0;z<4;z++)if(!rem.has(`${x},${y},${z}`)&&visible[y])cubes.push([x,y,z]);
+ let groups=componentMode?components(cubes):[];
+ let colors=['#4f91c8','#e49b54','#6cae86','#a28acb','#d47783','#6daeb0','#c2a34e'];
+ let colorMap=new Map();groups.forEach((g,i)=>g.forEach(c=>colorMap.set(c.join(','),colors[i%colors.length])));
+ let polys=[];
+ for(let c of cubes){let [x,y,z]=c;let v=[[x,y,z],[x+1,y,z],[x+1,y+1,z],[x,y+1,z],[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]];
+ let faces=[{ids:[0,1,2,3],shade:-.12},{ids:[4,5,6,7],shade:.15},{ids:[0,1,5,4],shade:-.02},{ids:[3,2,6,7],shade:.08},{ids:[0,3,7,4],shade:-.18},{ids:[1,2,6,5],shade:.02}];
+ for(let f of faces){let pts=f.ids.map(i=>project(v[i],y));let depth=pts.reduce((a,p)=>a+p[2],0)/4;polys.push({pts,depth,c,shade:f.shade})}}
+ polys.sort((a,b)=>a.depth-b.depth);
+ for(let p of polys){let base=componentMode?(colorMap.get(p.c.join(','))||'#9bb4c8'):'#8bb8dc';ctx.beginPath();ctx.moveTo(p.pts[0][0],p.pts[0][1]);p.pts.slice(1).forEach(v=>ctx.lineTo(v[0],v[1]));ctx.closePath();ctx.fillStyle=shade(base,p.shade);ctx.fill();ctx.strokeStyle='#315878';ctx.lineWidth=1.2;ctx.stroke()}
+ $('remaining').textContent=64-rem.size;$('removed').textContent=rem.size;
+ if(componentMode){$('componentText').textContent=groups.length+'個のまとまりがあります（面で接する場合のみ同じまとまり）。';}
+}
+function shade(hex,amt){let n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;let f=v=>Math.max(0,Math.min(255,Math.round(v*(1+amt))));return `rgb(${f(r)},${f(g)},${f(b)})`}
+['front','side','top','useFront','useSide','useTop'].forEach(id=>$(id).addEventListener('change',draw));
+$('clear').onclick=()=>{['useFront','useSide','useTop'].forEach(id=>$(id).checked=false);draw()};
+$('reset').onclick=()=>{yaw=-.65;pitch=.48;draw()};
+$('explode').onclick=()=>{exploded=!exploded;draw()};
+$('showAll').onclick=()=>{visible=[true,true,true,true];[...layers.children].forEach(b=>b.classList.add('primary'));draw()};
+$('zoom').oninput=e=>{zoom=e.target.value/100;draw()};
+$('components').onclick=()=>{componentMode=true;draw()};
+$('normal').onclick=()=>{componentMode=false;draw()};
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag[0],dy=e.clientY-drag[1];yaw+=dx*.009;pitch=Math.max(-1.35,Math.min(1.35,pitch+dy*.009));drag=[e.clientX,e.clientY];draw()});
+canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
+draw();
+</script>
+</body></html>
