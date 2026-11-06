@@ -4,150 +4,146 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#17243b">
-<title>図形ラボ｜中学受験</title>
+<title>図形ラボ｜穴のあいた立方体</title>
 <style>
-:root{--navy:#17243b;--blue:#3478e5;--pale:#edf3ff;--ink:#202938;--muted:#647084;--line:#dce2eb;--paper:#fff;--bg:#f3f5f8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
-header{background:var(--navy);color:white;padding:18px 16px 14px}header h1{font-size:22px;margin:0 0 5px}header p{font-size:13px;margin:0;color:#d6dfef}
-main{max-width:900px;margin:auto;padding:14px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
-.tab{border:1px solid var(--line);border-radius:12px;background:white;padding:12px 5px;font-size:14px;font-weight:700;color:var(--ink)}
-.tab.active{background:var(--blue);border-color:var(--blue);color:white}
-.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 2px 8px #1b2b4510}
-h2{font-size:18px;margin:0 0 8px} .desc{font-size:13px;color:var(--muted);line-height:1.65;margin:0 0 12px}
-canvas{display:block;width:100%;height:330px;background:#fbfcfe;border:1px solid var(--line);border-radius:12px;touch-action:none}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
-button,select,input{font:inherit}button{border:1px solid #cbd4e2;background:white;border-radius:10px;padding:10px 13px;color:var(--ink);font-weight:650}
-button.primary{background:var(--blue);border-color:var(--blue);color:white}
-button:active{transform:scale(.98)}
-label{font-size:13px;color:var(--muted);display:flex;gap:7px;align-items:center}
-input[type=range]{width:150px;accent-color:var(--blue)}
-select{border:1px solid #cbd4e2;border-radius:9px;padding:9px;background:white}
-.stat{background:var(--pale);border-radius:10px;padding:11px 13px;margin-top:10px;font-size:14px;line-height:1.7}
-.small{font-size:12px;color:var(--muted)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media(max-width:520px){canvas{height:300px}.tab{font-size:12px;padding:11px 3px}.panel{padding:12px}.grid2{grid-template-columns:1fr 1fr}}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:#202938;background:#f2f4f8}
+*{box-sizing:border-box}body{margin:0}header{background:#17243b;color:#fff;padding:18px 18px 16px}
+h1{font-size:23px;margin:0 0 5px}header p{margin:0;color:#d8e0ef;font-size:14px}
+main{max-width:850px;margin:auto;padding:14px}
+.panel{background:white;border:1px solid #dce2ec;border-radius:20px;padding:16px;margin:0 0 14px;box-shadow:0 3px 12px #17243b0b}
+h2{font-size:19px;margin:0 0 8px}.desc{color:#68758a;line-height:1.6;font-size:14px;margin:0 0 12px}
+canvas{display:block;width:100%;height:390px;background:#fbfcfe;border:1px solid #dce2ec;border-radius:14px;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+button{border:1px solid #ccd5e3;background:white;color:#202938;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:650}
+button.on{background:#3974df;color:white;border-color:#3974df}
+label{font-size:14px;color:#59677d;display:flex;align-items:center;gap:8px}
+input[type=range]{width:150px;accent-color:#3974df}
+.stats{background:#edf3ff;border-radius:12px;padding:13px;margin-top:12px;line-height:1.8;font-weight:600}
+.small{font-size:12px;color:#738096;line-height:1.6;margin-top:9px}
+#legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#59677d;margin-top:8px}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px}
 </style>
 </head>
 <body>
-<header><h1>図形ラボ</h1><p>中学受験の図形を、動かして確かめる学習アプリ</p></header>
+<header><h1>図形ラボ</h1><p>穴のあいた立方体を回して、残り方を確かめる</p></header>
 <main>
-<div class="tabs">
-<button class="tab active" data-page="plane">平面図形</button>
-<button class="tab" data-page="move">点の移動</button>
-<button class="tab" data-page="solid">立体図形</button>
-</div>
-
-<section id="plane" class="page">
-<div class="panel">
-<h2>① 三角形の面積・高さ・底辺</h2>
-<p class="desc">青い頂点を指で動かすと、底辺や高さ、面積が変わります。図形の形と面積の関係を確認できます。</p>
-<canvas id="planeCanvas"></canvas>
+<section class="panel">
+<h2>4×4×4の立方体</h2>
+<p class="desc">図の灰色のマスから、反対側までまっすぐ穴を開けた状態です。図を指で動かすと、立体を回転できます。</p>
+<canvas id="view" width="900" height="720"></canvas>
 <div class="controls">
-<label>底辺 <input id="base" type="range" min="80" max="260" value="190"><b id="baseVal">190</b></label>
-<label>高さ <input id="height" type="range" min="40" max="210" value="130"><b id="heightVal">130</b></label>
-<button id="planeReset">初期状態</button>
+<button id="holes" class="on">穴を表示：ON</button>
+<button id="groups" class="on">つながり別に色分け：ON</button>
+<button id="layers">層をずらす：OFF</button>
+<button id="reset">回転を戻す</button>
 </div>
-<div class="stat" id="planeStat">面積 ＝ 底辺 × 高さ ÷ 2</div>
-</div>
-<div class="panel">
-<h2>② 面積の比べ方</h2>
-<p class="desc">底辺が同じ三角形は、高さが変わると面積も比例して変わります。</p>
-<div class="grid2">
-<button class="primary" id="sameBase">底辺をそろえる</button>
-<button id="sameHeight">高さをそろえる</button>
-</div>
-<p class="small" id="ratioText">2つの三角形を比べてみましょう。</p>
-</div>
-</section>
-
-<section id="move" class="page" hidden>
-<div class="panel">
-<h2>③ 直角に交わる道を動く点</h2>
-<p class="desc">P・Q・R・Sが中心Oから各方向へ往復します。時間を動かして、位置と四角形の形を確認します。</p>
-<canvas id="moveCanvas"></canvas>
 <div class="controls">
-<label>経過時間 <input id="time" type="range" min="0" max="240" value="0"><b id="timeVal">0秒</b></label>
-<button id="play" class="primary">▶ 再生</button><button id="moveReset">最初に戻す</button>
+<label>表示する高さ <input id="layer" type="range" min="1" max="4" value="4"><b id="layerText">4層</b></label>
 </div>
-<div class="stat" id="moveStat"></div>
-<p class="small">設定：OA・OBは秒速1cm、OC・ODは秒速2cm、各道の長さは24cm。端に着くと折り返します。</p>
-</div>
+<div id="legend"></div>
+<div class="stats" id="stats"></div>
+<p class="small">※穴の位置は、送ってもらった写真の灰色のマスを読み取って設定しています。写真の角度や線の見え方で位置の読み違いがあれば、あとから修正できます。立体の接続は面どうしが接している場合だけを「つながる」と数えます。</p>
 </section>
-
-<section id="solid" class="page" hidden>
-<div class="panel">
-<h2>④ 立方体を回して、層ごとに見る</h2>
-<p class="desc">立方体を指でドラッグして回転。層を分けたり、色を付けたりして、見えない部分を確認できます。</p>
-<canvas id="cubeCanvas"></canvas>
-<div class="controls">
-<button id="explode" class="primary">層をずらす：OFF</button>
-<button id="color" class="primary">層を色分け：ON</button>
-<label>表示する層 <input id="layer" type="range" min="1" max="4" value="4"><b id="layerVal">全4層</b></label>
-<button id="cubeReset">回転を戻す</button>
-</div>
-<div class="stat" id="cubeStat">4×4×4＝64個の小立方体</div>
-</div>
-<div class="panel">
-<h2>⑤ 立体の見方</h2>
-<p class="desc">層を1段ずつ表示し、上から見た形・横から見た形を頭の中で組み立てます。次の段階で、過去問の切断や穴あけ条件を個別に再現できるようにします。</p>
-</div>
-</section>
-<p class="small" style="text-align:center;padding:8px">図形ラボ 試作版 1.0 ｜写真の自動読み取り・問題の自動解答はまだありません。</p>
 </main>
 <script>
-const $=id=>document.getElementById(id);
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
- document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));
- document.querySelectorAll('.page').forEach(x=>x.hidden=x.id!==b.dataset.page);
- if(b.dataset.page==='solid') drawCube(); if(b.dataset.page==='move') drawMove();
-}));
-function fit(c){let r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);c.width=r.width*d;c.height=r.height*d;let x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height};}
-function line(x,a,b,col='#28364b',w=2){x.beginPath();x.moveTo(...a);x.lineTo(...b);x.strokeStyle=col;x.lineWidth=w;x.stroke();}
-function dot(x,p,r=5,col='#3478e5'){x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.fillStyle=col;x.fill();}
-let bval=190,hval=130;
-function drawPlane(){let {x,w,h}=fit($('planeCanvas')),ox=w*.22,oy=h*.78,scale=.85;let A=[ox,oy],B=[ox+bval*scale,oy],C=[ox+bval*scale*.52,oy-hval*scale];
- x.fillStyle='#eaf1ff';x.beginPath();x.moveTo(...A);x.lineTo(...B);x.lineTo(...C);x.closePath();x.fill();line(x,A,B);line(x,B,C);line(x,C,A);
- line(x,[C[0],C[1]],[C[0],oy],'#e16b45',1.5);line(x,[C[0]-5,oy-1],[C[0]-5,oy+5],'#e16b45',1);
- dot(x,A,4,'#17243b');dot(x,B,4,'#17243b');dot(x,C,7);
- x.fillStyle='#17243b';x.font='14px sans-serif';x.fillText('A',A[0]-15,A[1]+18);x.fillText('B',B[0]+8,B[1]+5);x.fillText('C',C[0]+8,C[1]-5);x.fillText('高さ',C[0]+9,(C[1]+oy)/2);
- $('baseVal').textContent=bval;$('heightVal').textContent=hval;$('planeStat').innerHTML=`底辺 ${bval} × 高さ ${hval} ÷ 2 ＝ <b>${(bval*hval/2).toLocaleString()}（面積の単位）</b>`;
-}
-$('base').oninput=e=>{bval=+e.target.value;drawPlane()};$('height').oninput=e=>{hval=+e.target.value;drawPlane()};
-$('planeReset').onclick=()=>{$('base').value=190;$('height').value=130;bval=190;hval=130;drawPlane()};
-$('sameBase').onclick=()=>{$('ratioText').textContent='底辺が同じなら、面積の比＝高さの比。高さを2倍にすると面積も2倍です。'};
-$('sameHeight').onclick=()=>{$('ratioText').textContent='高さが同じなら、面積の比＝底辺の比。底辺を半分にすると面積も半分です。'};
-drawPlane();
-let t=0,timer=null;
-function pos(sec,speed){let d=24,period=2*d/speed,phase=(sec%period)*speed;return phase<=d?phase:2*d-phase;}
-function drawMove(){let {x,w,h}=fit($('moveCanvas')),cx=w/2,cy=h/2,sc=Math.min(w,h)*.012;
- line(x,[cx-24*sc,cy],[cx+24*sc,cy],'#647084',2);line(x,[cx,cy-24*sc],[cx,cy+24*sc],'#647084',2);
- let vals=[pos(t,1),pos(t,1),pos(t,2),pos(t,2)],pts=[[cx,cy-vals[0]*sc],[cx-vals[1]*sc,cy],[cx,cy+vals[2]*sc],[cx+vals[3]*sc,cy]];
- ['P','Q','R','S'].forEach((n,i)=>{dot(x,pts[i],7,['#3478e5','#16a085','#e16b45','#9b59b6'][i]);x.fillStyle='#17243b';x.font='14px sans-serif';x.fillText(n,pts[i][0]+9,pts[i][1]-8)});
- x.fillStyle='#17243b';x.fillText('O',cx+8,cy+17);
- let ds=[Math.abs(vals[0]-vals[2]),Math.abs(vals[1]-vals[3])];$('timeVal').textContent=t+'秒';$('moveStat').innerHTML=`P・Q・R・Sの位置を表示中。<br>中心からの距離：P ${vals[0].toFixed(0)}cm／Q ${vals[1].toFixed(0)}cm／R ${vals[2].toFixed(0)}cm／S ${vals[3].toFixed(0)}cm<br>※四角形の辺の長さや面積を自動計算する機能は次の改良で追加します。`;}
-$('time').oninput=e=>{t=+e.target.value;drawMove()};$('moveReset').onclick=()=>{t=0;$('time').value=0;drawMove()};
-$('play').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('play').textContent='▶ 再生';return} $('play').textContent='Ⅱ 停止';timer=setInterval(()=>{t=(t+1)%241;$('time').value=t;drawMove()},250)};
-let yaw=-.65,pitch=.5,explode=false,colorOn=true,layers=4,drag=null;
-function project(p,cx,cy,s){let [a,b,c]=p,ca=Math.cos(yaw),sa=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);let X=a*ca-c*sa,Z=a*sa+c*ca,Y=b*cp-Z*sp,Z2=b*sp+Z*cp;return [cx+X*s,cy-Y*s,Z2]}
-function drawCube(){let {x,w,h}=fit($('cubeCanvas')),cx=w/2,cy=h/2+10,s=Math.min(w,h)*.115,faces=[];
- for(let i=0;i<4;i++)for(let j=0;j<layers;j++)for(let k=0;k<4;k++){
- let off=explode?(j-1.5)*.22:0,xx=i-1.5,yy=j-1.5+off,zz=k-1.5;
- let v=[[xx-.48,yy-.48,zz-.48],[xx+.48,yy-.48,zz-.48],[xx+.48,yy+.48,zz-.48],[xx-.48,yy+.48,zz-.48],[xx-.48,yy-.48,zz+.48],[xx+.48,yy-.48,zz+.48],[xx+.48,yy+.48,zz+.48],[xx-.48,yy+.48,zz+.48]];
- let fs=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[3,2,6,7],[0,3,7,4],[1,2,6,5]];
- fs.forEach((f,fi)=>{let pts=f.map(q=>project(v[q],cx,cy,s)),z=pts.reduce((a,p)=>a+p[2],0)/4;faces.push({pts,z,fi,j})});
+(()=>{
+const N=4, canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+let yaw=-0.62,pitch=0.48,showHoles=true,showGroups=true,explode=false,maxZ=4,drag=null;
+const removed=new Set();
+const key=(x,y,z)=>`${x},${y},${z}`;
+function tunnel(axis,a,b){
+ for(let t=0;t<4;t++){
+  let p=axis==='z'?[a,b,t]:axis==='y'?[a,t,b]:[t,a,b];
+  removed.add(key(...p));
  }
- faces.sort((a,b)=>b.z-a.z);
- faces.forEach(f=>{x.beginPath();x.moveTo(f.pts[0][0],f.pts[0][1]);f.pts.slice(1).forEach(p=>x.lineTo(p[0],p[1]));x.closePath();let cols=['#e7edf7','#c9d9f3','#dce8f8','#f1d9b7'];x.fillStyle=colorOn?cols[f.j]:'#dce5f2';x.fill();x.strokeStyle='#526176';x.lineWidth=1;x.stroke()});
- $('layerVal').textContent=`${layers}層を表示`;$('cubeStat').textContent=`4×4×${layers}＝${16*layers}個の小立方体を表示中。${explode?'層を上下にずらしています。':'層は重ねた状態です。'}`;
 }
-$('explode').onclick=()=>{explode=!explode;$('explode').textContent='層をずらす：'+(explode?'ON':'OFF');drawCube()};
-$('color').onclick=()=>{colorOn=!colorOn;$('color').textContent='層を色分け：'+(colorOn?'ON':'OFF');drawCube()};
-$('layer').oninput=e=>{layers=+e.target.value;drawCube()};
-$('cubeReset').onclick=()=>{yaw=-.65;pitch=.5;explode=false;layers=4;$('layer').value=4;$('explode').textContent='層をずらす：OFF';drawCube()};
-const cc=$('cubeCanvas');cc.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cc.setPointerCapture(e.pointerId)});cc.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag[0],dy=e.clientY-drag[1];yaw+=dx*.012;pitch=Math.max(-1.3,Math.min(1.3,pitch+dy*.012));drag=[e.clientX,e.clientY];drawCube()});cc.addEventListener('pointerup',()=>drag=null);cc.addEventListener('pointercancel',()=>drag=null);
-window.addEventListener('resize',()=>{drawPlane();if(!$('move').hidden)drawMove();if(!$('solid').hidden)drawCube()});
-drawMove();drawCube();
+// 上面3か所、手前面3か所、右面3か所
+[[0,2],[3,2],[1,1]].forEach(([x,y])=>tunnel('z',x,y));
+[[0,3],[2,2],[1,1]].forEach(([x,z])=>tunnel('y',x,z));
+[[2,3],[0,1],[1,0]].forEach(([y,z])=>tunnel('x',y,z));
+const all=[];for(let x=0;x<N;x++)for(let y=0;y<N;y++)for(let z=0;z<N;z++)all.push([x,y,z]);
+const remain=all.filter(([x,y,z])=>!removed.has(key(x,y,z)));
+let unseen=new Set(remain.map(p=>key(...p))),comps=[];
+while(unseen.size){
+ let first=unseen.values().next().value;unseen.delete(first);
+ let q=[first],members=[];
+ while(q.length){let s=q.pop(),p=s.split(',').map(Number);members.push(p);
+  for(let d of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){
+   let np=p.map((v,i)=>v+d[i]),k=key(...np);
+   if(unseen.has(k)){unseen.delete(k);q.push(k)}
+  }
+ }
+ comps.push(members);
+}
+comps.sort((a,b)=>b.length-a.length);
+const groupMap=new Map();comps.forEach((c,i)=>c.forEach(p=>groupMap.set(key(...p),i)));
+const palette=['#4f83df','#edaa48','#48a88b','#a47bd4','#dc7182'];
+function project(x,y,z){
+ // center at origin, rotate around vertical then horizontal
+ let X=x-1.5,Y=y-1.5,Z=z-1.5;
+ let xx=X*Math.cos(yaw)-Y*Math.sin(yaw), yy=X*Math.sin(yaw)+Y*Math.cos(yaw);
+ let zz=Z*Math.cos(pitch)-yy*Math.sin(pitch), depth=Z*Math.sin(pitch)+yy*Math.cos(pitch);
+ return [450+xx*76,360-zz*76,depth];
+}
+function draw(){
+ const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+ let cells=all.filter(([x,y,z])=>z<maxZ && (!removed.has(key(x,y,z)) || showHoles));
+ let faces=[];
+ for(let [x,y,z] of cells){
+  let isHole=removed.has(key(x,y,z));
+  if(isHole&&!showHoles)continue;
+  let offset=explode?(z-1.5)*13:0;
+  let v=(a,b,c)=>project(a,b,c+offset/76);
+  let cubeFaces=[
+   {n:[0,0,1],pts:[[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]]},
+   {n:[0,-1,0],pts:[[x,y,z],[x+1,y,z],[x+1,y,z+1],[x,y,z+1]]},
+   {n:[1,0,0],pts:[[x+1,y,z],[x+1,y+1,z],[x+1,y+1,z+1],[x+1,y,z+1]]},
+   {n:[0,1,0],pts:[[x,y+1,z],[x+1,y+1,z],[x+1,y+1,z+1],[x,y+1,z+1]]},
+   {n:[-1,0,0],pts:[[x,y,z],[x,y+1,z],[x,y+1,z+1],[x,y,z+1]]},
+   {n:[0,0,-1],pts:[[x,y,z],[x+1,y,z],[x+1,y+1,z],[x,y+1,z]]}
+  ];
+  for(let f of cubeFaces){
+   let [dx,dy,dz]=f.n,nb=[x+dx,y+dy,z+dz];
+   if(nb.every(v=>v>=0&&v<4) && cells.some(p=>p[0]===nb[0]&&p[1]===nb[1]&&p[2]===nb[2]))continue;
+   let ps=f.pts.map(p=>v(...p)),depth=ps.reduce((s,p)=>s+p[2],0)/4;
+   faces.push({ps,depth,isHole,grp:groupMap.get(key(x,y,z)),n:f.n});
+  }
+ }
+ faces.sort((a,b)=>a.depth-b.depth);
+ for(let f of faces){
+  let pts=f.ps;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();
+  let fill;
+  if(f.isHole)fill='#fff';else if(showGroups)fill=palette[f.grp%palette.length];else fill='#cbd8ec';
+  if(f.n[2]===1)ctx.globalAlpha=f.isHole?.12:.88;
+  else ctx.globalAlpha=f.isHole?.12:.68;
+  ctx.fillStyle=fill;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#526176';ctx.lineWidth=2;ctx.stroke();
+ }
+ // open tunnel mouths: highlight visible removed cubes on exterior
+ if(showHoles){
+  for(let [x,y,z] of all.filter(p=>removed.has(key(...p))&&p[2]<maxZ)){
+   let surfaces=[[x,y,z+1,'top'],[x,y,z,'bottom'],[x,y,z,'front'],[x+1,y,z,'right']];
+   for(let [a,b,c,side] of surfaces){
+    let boundary=(side==='top'&&z===3)||(side==='bottom'&&z===0)||(side==='front'&&y===0)||(side==='right'&&x===3);
+    if(!boundary)continue;
+    let q=side==='top'?[[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]]:side==='front'?[[x,y,z],[x+1,y,z],[x+1,y,z+1],[x,y,z+1]]:[[x+1,y,z],[x+1,y+1,z],[x+1,y+1,z+1],[x+1,y,z+1]];
+    let ps=q.map(p=>project(...p));ctx.beginPath();ctx.moveTo(ps[0][0],ps[0][1]);ps.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();ctx.fillStyle='#27364c';ctx.globalAlpha=.35;ctx.fill();ctx.globalAlpha=1;
+   }
+  }
+ }
+}
+function resize(){let r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(r.width*d);canvas.height=Math.round(390*d);ctx.setTransform(d,0,0,d,0,0);canvas.width=900;canvas.height=720;draw();}
+let sx=0,sy=0;
+canvas.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY,yaw,pitch];canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw=drag[2]+(e.clientX-drag[0])*.009;pitch=Math.max(-1.1,Math.min(1.1,drag[3]+(e.clientY-drag[1])*.009));draw()});
+canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
+document.getElementById('holes').onclick=e=>{showHoles=!showHoles;e.target.textContent=`穴を表示：${showHoles?'ON':'OFF'}`;e.target.classList.toggle('on',showHoles);draw()};
+document.getElementById('groups').onclick=e=>{showGroups=!showGroups;e.target.textContent=`つながり別に色分け：${showGroups?'ON':'OFF'}`;e.target.classList.toggle('on',showGroups);draw()};
+document.getElementById('layers').onclick=e=>{explode=!explode;e.target.textContent=`層をずらす：${explode?'ON':'OFF'}`;e.target.classList.toggle('on',explode);draw()};
+document.getElementById('reset').onclick=()=>{yaw=-.62;pitch=.48;draw()};
+document.getElementById('layer').oninput=e=>{maxZ=+e.target.value;document.getElementById('layerText').textContent=maxZ+'層';draw()};
+document.getElementById('stats').innerHTML=`灰色のマスから取り除かれる小立方体：${removed.size}個<br>残る小立方体：${64-removed.size}個<br>残った立体のまとまり：${comps.length}個<br>一番大きな立体に含まれる小立方体：${comps[0].length}個`;
+document.getElementById('legend').innerHTML=comps.map((c,i)=>`<span><i class="dot" style="background:${palette[i%palette.length]}"></i>${i+1}番目：${c.length}個</span>`).join('');
+draw();
+})();
 </script>
 </body></html>
